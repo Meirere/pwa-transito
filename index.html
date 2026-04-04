@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Perícia de Trânsito</title>
+
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#dc3545">
+
+  <script src="jspdf.min.js"></script>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 10px;
+      background: #f8f9fa;
+    }
+    h2 {
+      background: #dc3545;
+      color: white;
+      padding: 10px;
+      border-radius: 5px;
+    }
+    label {
+      display: block;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+    input, select, textarea {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+    button {
+      margin-top: 20px;
+      padding: 15px;
+      width: 100%;
+      background: #dc3545;
+      color: white;
+      border: none;
+      font-size: 16px;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+
+<body>
+
+<h2>Perícia de Trânsito</h2>
+
+<form id="form">
+
+<label>Data do acionamento</label>
+<input type="date" id="data">
+
+<label>Protocolo CIODS</label>
+<input type="text" id="ciods">
+
+<label>Hora da chegada</label>
+<input type="time" id="chegada">
+
+<label>Hora do fim</label>
+<input type="time" id="fim">
+
+<label>Finalizada no mesmo dia?</label>
+<select id="mesmoDia">
+  <option>Sim</option>
+  <option>Não</option>
+</select>
+
+<label>Tipo de via</label>
+<select id="tipoVia">
+  <option>Urbana</option>
+  <option>Rural</option>
+</select>
+
+<label>Classificação da via</label>
+<input type="text" id="classificacao">
+
+<label>Endereço / KM</label>
+<input type="text" id="endereco">
+
+<label>GPS</label>
+<input type="text" id="gps">
+
+<label>Cidade</label>
+<input type="text" id="cidade">
+
+<label>Circunscrição</label>
+<input type="text" id="circ">
+
+<label>Polícia do isolamento</label>
+<input type="text" id="policia">
+
+<label>Cargo do policial</label>
+<input type="text" id="cargo">
+
+<label>Nome do policial</label>
+<input type="text" id="nomePolicial">
+
+<label>Matrícula</label>
+<input type="text" id="matricula">
+
+<label>Tipo de pavimento</label>
+<input type="text" id="pavimento">
+
+<label>Estado da estrada</label>
+<input type="text" id="estado">
+
+<label>Topografia</label>
+<input type="text" id="topografia">
+
+<label>Trecho</label>
+<select id="trecho">
+  <option>Reta</option>
+  <option>Curva</option>
+</select>
+
+<label>Número de faixas</label>
+<input type="number" id="faixas">
+
+<label>Sentido das vias</label>
+<input type="text" id="sentidoVia">
+
+<label>Placa V1</label>
+<input type="text" id="placa1">
+
+<label>Sentido V1</label>
+<input type="text" id="sentido1">
+
+<label>Placa V2</label>
+<input type="text" id="placa2">
+
+<label>Sentido V2</label>
+<input type="text" id="sentido2">
+
+<label>Turno</label>
+<select id="turno">
+  <option>Matutino</option>
+  <option>Vespertino</option>
+  <option>Noite</option>
+</select>
+
+<label>Iluminação</label>
+<select id="iluminacao">
+  <option>Pública</option>
+  <option>Privada</option>
+</select>
+
+<label>Visibilidade</label>
+<input type="text" id="visibilidade">
+
+<label>Pista</label>
+<select id="pista">
+  <option>Seca</option>
+  <option>Molhada</option>
+</select>
+
+<label>Tráfego</label>
+<select id="trafego">
+  <option>Leve</option>
+  <option>Moderado</option>
+  <option>Intenso</option>
+</select>
+
+<label>Ladeamento</label>
+<input type="text" id="ladeamento">
+
+<label>Há câmeras?</label>
+<select id="cameras">
+  <option>Sim</option>
+  <option>Não</option>
+</select>
+
+<label>Há vítimas fatais?</label>
+<select id="vitimas">
+  <option>Sim</option>
+  <option>Não</option>
+</select>
+
+<label>Informações das vítimas e pertences</label>
+<textarea id="vitimasInfo" rows="5"></textarea>
+
+<label>Vestígios V1</label>
+<textarea id="v1"></textarea>
+
+<label>Vestígios V2</label>
+<textarea id="v2"></textarea>
+
+<label>Vestígios na via</label>
+<textarea id="via"></textarea>
+
+<label>Vestígios nos cadáveres</label>
+<textarea id="cadaver"></textarea>
+
+<button type="button" onclick="gerarPDF()">Gerar PDF</button>
+
+</form>
+
+<script>
+function gerarPDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+
+  let texto = "";
+
+  document.querySelectorAll("input, select, textarea").forEach(el => {
+    if (el.value) {
+      texto += el.previousElementSibling.innerText + ": " + el.value + "\n\n";
+    }
+  });
+
+  const linhas = doc.splitTextToSize(texto, 180); // quebra o texto
+
+  let y = 10;
+
+  linhas.forEach(linha => {
+    if (y > 280) { // cria nova página
+      doc.addPage();
+      y = 10;
+    }
+    doc.text(linha, 10, y);
+    y += 7;
+  });
+
+  const data = document.getElementById("data").value;
+  doc.save(`pericia_transito_${data}.pdf`);
+}
+</script>
+
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js');
+}
+</script>
+
+</body>
+</html>
