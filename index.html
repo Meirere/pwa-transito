@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -16,33 +17,45 @@
       margin: 10px;
       background: #f8f9fa;
     }
+
     h2 {
       background: #dc3545;
       color: white;
       padding: 10px;
       border-radius: 5px;
     }
+
     label {
       display: block;
       margin-top: 10px;
       font-weight: bold;
     }
+
     input, select, textarea {
       width: 100%;
       padding: 8px;
       margin-top: 5px;
       border-radius: 5px;
       border: 1px solid #ccc;
+      box-sizing: border-box;
     }
+
     button {
       margin-top: 20px;
       padding: 15px;
       width: 100%;
-      background: #dc3545;
       color: white;
       border: none;
       font-size: 16px;
       border-radius: 8px;
+    }
+
+    .btn-pdf {
+      background: #dc3545;
+    }
+
+    .btn-limpar {
+      background: #6c757d;
     }
   </style>
 </head>
@@ -196,46 +209,114 @@
 <label>Vestígios nos cadáveres</label>
 <textarea id="cadaver"></textarea>
 
-<button type="button" onclick="gerarPDF()">Gerar PDF</button>
+<button type="button" class="btn-pdf" onclick="gerarPDF()">
+Gerar PDF
+</button>
+
+<button type="button" class="btn-limpar" onclick="limparDados()">
+Limpar dados
+</button>
 
 </form>
 
 <script>
+
+/* =========================
+   SALVAMENTO AUTOMÁTICO
+========================= */
+
+const campos = document.querySelectorAll("input, select, textarea");
+
+campos.forEach(campo => {
+
+  const valorSalvo = localStorage.getItem(campo.id);
+
+  if (valorSalvo !== null) {
+    campo.value = valorSalvo;
+  }
+
+  campo.addEventListener("input", () => {
+    localStorage.setItem(campo.id, campo.value);
+  });
+
+});
+
+/* =========================
+   GERAR PDF
+========================= */
+
 function gerarPDF() {
+
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
 
   let texto = "";
 
   document.querySelectorAll("input, select, textarea").forEach(el => {
+
     if (el.value) {
       texto += el.previousElementSibling.innerText + ": " + el.value + "\n\n";
     }
+
   });
 
-  const linhas = doc.splitTextToSize(texto, 180); // quebra o texto
+  const linhas = doc.splitTextToSize(texto, 180);
 
   let y = 10;
 
   linhas.forEach(linha => {
-    if (y > 280) { // cria nova página
+
+    if (y > 280) {
       doc.addPage();
       y = 10;
     }
+
     doc.text(linha, 10, y);
+
     y += 7;
+
   });
 
   const data = document.getElementById("data").value;
-  doc.save(`pericia_transito_${data}.pdf`);
-}
-</script>
 
-<script>
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js');
+  doc.save(`pericia_transito_${data}.pdf`);
+
 }
+
+/* =========================
+   LIMPAR DADOS
+========================= */
+
+function limparDados() {
+
+  const confirmar = confirm(
+    "Tem certeza que deseja apagar todos os dados preenchidos?"
+  );
+
+  if (confirmar) {
+
+    localStorage.clear();
+
+    alert("Dados apagados com sucesso.");
+
+    location.reload();
+
+  }
+
+}
+
+/* =========================
+   SERVICE WORKER
+========================= */
+
+if ('serviceWorker' in navigator) {
+
+  navigator.serviceWorker.register('sw.js');
+
+}
+
 </script>
 
 </body>
 </html>
+```
