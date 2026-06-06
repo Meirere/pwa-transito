@@ -1,4 +1,4 @@
-const CACHE_NAME = 'transito-cache-v13';
+const CACHE_NAME = 'transito-cache-v14';
 
 const urlsToCache = [
   './',
