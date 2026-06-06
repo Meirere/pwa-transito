@@ -17,52 +17,73 @@
       background: #f8f9fa;
     }
 
-    h2 {
+    .titulo-envolvido {
+      background: #072d64;
+      color: white;
+      padding: 10px;
+      border-radius: 5px;
+    }
+
+    .titulo-veiculo {
+      background: #158606;
+      color: white;
+      padding: 10px;
+      border-radius: 5px;
+    }
+    
+    .titulo-vestigios {
       background: #dc3545;
       color: white;
       padding: 10px;
       border-radius: 5px;
     }
 
+    h2 {
+      background: #dc3545;
+      color: white;
+      padding: 10px;
+      border-radius: 5px;
+    }
+ 
     label {
       display: block;
       margin-top: 10px;
       font-weight: bold;
     }
-
     input, select, textarea {
       width: 100%;
       padding: 8px;
       margin-top: 5px;
       border-radius: 5px;
       border: 1px solid #ccc;
-      box-sizing: border-box;
     }
-
     button {
-      margin-top: 20px;
-      padding: 15px;
-      width: 100%;
-      color: white;
-      border: none;
-      font-size: 16px;
-      border-radius: 8px;
-      cursor: pointer;
+    margin-top: 20px;
+    padding: 15px;
+    width: 100%;
+    color: white;
+    border: none;
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 10px;
+    cursor: pointer;
+    box-shadow: 0 4px 0 rgba(0,0,0,0.25);
     }
-
+    button:active {
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 rgba(0,0,0,0.25);
+    }
     .btn-pdf {
       background: #dc3545;
     }
-
     .btn-limpar {
       background: #6c757d;
     }
-
-    footer {
-      text-align: center;
-      margin-top: 30px;
-      color: gray;
-      font-size: 12px;
+    .btn-veiculos {
+      background: #158606;
+    }
+    .btn-envolvidos {
+      background: #072d64;
     }
   </style>
 </head>
@@ -145,18 +166,6 @@
 <label>Sentido das vias</label>
 <input type="text" id="sentidoVia">
 
-<label>Placa V1</label>
-<input type="text" id="placa1">
-
-<label>Sentido V1</label>
-<input type="text" id="sentido1">
-
-<label>Placa V2</label>
-<input type="text" id="placa2">
-
-<label>Sentido V2</label>
-<input type="text" id="sentido2">
-
 <label>Turno</label>
 <select id="turno">
   <option>Matutino</option>
@@ -195,46 +204,44 @@
   <option>Não</option>
 </select>
 
-<label>Há vítimas fatais?</label>
-<select id="vitimas">
-  <option>Sim</option>
-  <option>Não</option>
-</select>
 
-<label>Informações das vítimas e pertences</label>
-<textarea id="vitimasInfo" rows="5"></textarea>
+<h4 class="titulo-envolvido">Envolvidos no Sinistro</h4>
 
-<label>Vestígios V1</label>
-<textarea id="v1"></textarea>
+    <label>Quantidade de envolvidos</label>
+    <input type="number" id="qtdEnvolvidos" min="1" placeholder="Digite o número de envolvidos entre condutores e passageiros">
 
-<label>Vestígios V2</label>
-<textarea id="v2"></textarea>
+    <button type="button" class="btn-envolvidos" onclick="gerarEnvolvidos()">+ Gerar envolvidos</button>
+
+    <div id="areaEnvolvidos"></div>
+
+<h3 class="titulo-veiculo">Veículos Envolvidos</h3>
+
+    <label>Quantidade de veículos</label>
+    <input type="number" id="veicEnvolvidos" min="1" placeholder="Digite o número de veículos a serem criados">
+
+    <button type="button" class="btn-veiculos" onclick="gerarVeiculosEnvolvidos()">+ Gerar veículos envolvidos</button>
+
+    <div id="veiculosEnvolvidos"></div>
+
+<h3 class="titulo-vestigios">Exames Periciais</h3>
 
 <label>Vestígios na via</label>
 <textarea id="via"></textarea>
 
 <label>Vestígios nos cadáveres</label>
 <textarea id="cadaver"></textarea>
-
-<button type="button" class="btn-pdf" onclick="gerarPDF()">
-Gerar PDF
+  
+<button type="button"
+        class="btn-limpar"
+        onclick="limparDados()">
+  Apagar Dados
 </button>
-
-<button type="button" class="btn-limpar" onclick="limparDados()">
-Limpar dados
-</button>
+<button type="button" class="btn-pdf" onclick="gerarPDF()">Gerar PDF</button>
 
 </form>
 
-<footer>
-  © Perito Meirere
-</footer>
 
 <script>
-
-/* =========================
-   SALVAMENTO AUTOMÁTICO
-========================= */
 
 const campos = document.querySelectorAll("input, select, textarea");
 
@@ -252,80 +259,165 @@ campos.forEach(campo => {
 
 });
 
-/* =========================
-   GERAR PDF
-========================= */
+function ativarSalvamento(seletor) {
+  document.querySelectorAll(`${seletor} input, ${seletor} select, ${seletor} textarea`)
+    .forEach(campo => {
+      const valorSalvo = localStorage.getItem(campo.id);
+
+      if (valorSalvo !== null) {
+        campo.value = valorSalvo;
+      }
+
+      campo.addEventListener("input", () => {
+        localStorage.setItem(campo.id, campo.value);
+      });
+
+      campo.addEventListener("change", () => {
+        localStorage.setItem(campo.id, campo.value);
+      });
+    });
+}
+
+function gerarEnvolvidos() {
+  const qtd = Number(document.getElementById("qtdEnvolvidos").value);
+  const area = document.getElementById("areaEnvolvidos");
+
+  area.innerHTML = "";
+
+  for (let i = 1; i <= qtd; i++) {
+    area.innerHTML += `
+      <div>
+        <h3 class="titulo-envolvido">Envolvido ${i}</h3>
+
+        <label>Categoria do Envolvido ${i}</label>
+        <select id="categoria${i}">
+          <option>Condutor</option>
+          <option>Passageiro</option>
+          <option>Pedestre</option>
+        </select>
+
+        <label>Nome do Envolvido ${i}</label>
+        <input type="text" id="nome${i}">
+      </div>
+    `;
+  }
+  ativarSalvamento("#areaEnvolvidos");
+}
+
+function gerarVeiculosEnvolvidos() {
+  const qtd = Number(document.getElementById("veicEnvolvidos").value);
+  const area = document.getElementById("veiculosEnvolvidos");
+
+  area.innerHTML = "";
+
+  for (let i = 1; i <= qtd; i++) {
+    area.innerHTML += `
+      <div>
+        <h3 class="titulo-veiculo">Veículo ${i}</h3>
+
+        <label>Veículo ${i}</label>
+        <select id="tipo${i}" onchange="mostrarOutro(${i})">
+          <option>Caminhão</option>
+          <option>Automóvel</option>
+          <option>Motocicleta</option>
+          <option>Outro</option>
+        </select>
+        <div id="outroDiv${i}" style="display:none;">
+          <label>Tipo de veículo:</label>
+          <input type="text" id="outroTipo${i}" placeholder="automóvel, carroça, bicicleta, etc" >
+        </div>
+        
+        <label>Sentido de tráfego veículo ${i}</label>
+        <input type="text" id="sentidoVeic${i}">
+    
+        <label>Vestígio veículo ${i}</label>
+        <input type="text" id="vestigios${i}">
+        
+        <label>Placa do veículo ${i}</label>
+        <input type="text" id="placa${i}">
+      </div>
+    `;
+  }
+  ativarSalvamento("#veiculosEnvolvidos");
+
+  for (let i = 1; i <= qtd; i++) {
+   mostrarOutro(i);
+  }
+}
+
+function mostrarOutro(i) {
+  const tipo = document.getElementById(`tipo${i}`);
+  const divOutro = document.getElementById(`outroDiv${i}`);
+
+  if (tipo.value === "Outro") {
+    divOutro.style.display = "block";
+  } else {
+    divOutro.style.display = "none";
+  }
+}
 
 function gerarPDF() {
-
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
 
   let texto = "";
 
   document.querySelectorAll("input, select, textarea").forEach(el => {
-
     if (el.value) {
       texto += el.previousElementSibling.innerText + ": " + el.value + "\n\n";
     }
-
   });
 
-  const linhas = doc.splitTextToSize(texto, 180);
+  const linhas = doc.splitTextToSize(texto, 180); // quebra o texto
 
   let y = 10;
 
   linhas.forEach(linha => {
-
-    if (y > 280) {
+    if (y > 280) { // cria nova página
       doc.addPage();
       y = 10;
     }
-
     doc.text(linha, 10, y);
-
     y += 7;
-
   });
 
   const data = document.getElementById("data").value;
-
   doc.save(`pericia_transito_${data}.pdf`);
-
 }
-
-/* =========================
-   LIMPAR DADOS
-========================= */
-
-function limparDados() {
-
-  const confirmar = confirm(
-    "Tem certeza que deseja apagar todos os dados preenchidos?"
-  );
-
-  if (confirmar) {
-
-    localStorage.clear();
-
-    alert("Dados apagados com sucesso.");
-
-    location.reload();
-
+window.addEventListener("load", () => {
+  if (localStorage.getItem("qtdEnvolvidos")) {
+    gerarEnvolvidos();
   }
 
+  if (localStorage.getItem("veicEnvolvidos")) {
+    gerarVeiculosEnvolvidos();
+  }
+});
+function limparDados() {
+
+const confirmar = confirm(
+  "Tem certeza que deseja apagar todos os dados preenchidos?"
+);
+
+if (confirmar) {
+
+  localStorage.clear();
+
+  alert("Dados apagados com sucesso.");
+
+  location.reload();
+
 }
 
-/* =========================
-   SERVICE WORKER
-========================= */
+}
 
+
+</script>
+
+<script>
 if ('serviceWorker' in navigator) {
-
   navigator.serviceWorker.register('sw.js');
-
 }
-
 </script>
 
 </body>
