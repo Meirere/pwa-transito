@@ -7,446 +7,805 @@
 
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#dc3545">
-
   <script src="jspdf.min.js"></script>
 
   <style>
+    * { box-sizing: border-box; }
     body {
       font-family: Arial, sans-serif;
       margin: 10px;
       background: #f8f9fa;
+      color: #212529;
     }
-
-    .titulo-envolvido {
-      background: #072d64;
-      color: white;
-      padding: 10px;
-      border-radius: 5px;
-    }
-
-    .titulo-veiculo {
-      background: #158606;
-      color: white;
-      padding: 10px;
-      border-radius: 5px;
-    }
-    
-    .titulo-vestigios {
+    h2, .titulo-geral {
       background: #dc3545;
       color: white;
       padding: 10px;
       border-radius: 5px;
     }
-
-    h2 {
-      background: #dc3545;
-      color: white;
-      padding: 10px;
-      border-radius: 5px;
-    }
- 
-    label {
-      display: block;
-      margin-top: 10px;
-      font-weight: bold;
-    }
+    .titulo-local { background: #495057; color: white; padding: 10px; border-radius: 5px; }
+    .titulo-sinalizacao { background: #6c757d; color: white; padding: 10px; border-radius: 5px; }
+    .titulo-envolvido { background: #072d64; color: white; padding: 10px; border-radius: 5px; }
+    .titulo-veiculo { background: #158606; color: white; padding: 10px; border-radius: 5px; }
+    .titulo-vestigios { background: #dc3545; color: white; padding: 10px; border-radius: 5px; }
+    .titulo-informacoes { background: #6f42c1; color: white; padding: 10px; border-radius: 5px; }
+    .titulo-fotografias { background: #343a40; color: white; padding: 10px; border-radius: 5px; }
+    label { display: block; margin-top: 10px; font-weight: bold; }
     input, select, textarea {
       width: 100%;
-      padding: 8px;
+      padding: 9px;
       margin-top: 5px;
       border-radius: 5px;
       border: 1px solid #ccc;
+      font-size: 16px;
+      background: white;
     }
+    textarea { min-height: 80px; resize: vertical; }
+
+    input[type="checkbox"] {
+      width: auto;
+      margin-right: 8px;
+      transform: scale(1.2);
+    }
+    #ladeamentoGrupo label {
+      font-weight: normal;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
     button {
-    margin-top: 20px;
-    padding: 15px;
-    width: 100%;
-    color: white;
-    border: none;
-    font-size: 16px;
-    font-weight: bold;
-    border-radius: 10px;
-    cursor: pointer;
-    box-shadow: 0 4px 0 rgba(0,0,0,0.25);
+      margin-top: 20px;
+      padding: 15px;
+      width: 100%;
+      color: white;
+      border: none;
+      font-size: 16px;
+      font-weight: bold;
+      border-radius: 10px;
+      cursor: pointer;
+      box-shadow: 0 4px 0 rgba(0,0,0,0.25);
     }
-    button:active {
-    transform: translateY(2px);
-    box-shadow: 0 2px 0 rgba(0,0,0,0.25);
+    button:active { transform: translateY(2px); box-shadow: 0 2px 0 rgba(0,0,0,0.25); }
+    .btn-gps { background: #198754; }
+    .btn-pdf { background: #dc3545; }
+    .btn-limpar { background: #6c757d; }
+    .btn-veiculos { background: #158606; }
+    .btn-envolvidos { background: #072d64; }
+    .bloco-dinamico {
+      margin-top: 15px;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      background: #fff;
     }
-    
-    .btn-gps {
-      background: #198754;
+    .linha-dupla {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
     }
-    
-    .btn-pdf {
-      background: #dc3545;
-    }
-    
-    .btn-limpar {
-      background: #6c757d;
-    }
-    .btn-veiculos {
-      background: #158606;
-    }
-    .btn-envolvidos {
-      background: #072d64;
+    @media (max-width: 600px) {
+      .linha-dupla { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 
 <body>
-
 <h2>Perícia de Trânsito</h2>
-
 <form id="form">
 
-<label>Data do acionamento</label>
-<input type="date" id="data">
+  <h3 class="titulo-geral">Dados Gerais</h3>
 
-<label>Protocolo CIODS</label>
-<input type="text" id="ciods">
+  <label for="data">Data do acionamento</label>
+  <input type="date" id="data">
 
-<label>Hora da chegada</label>
-<input type="time" id="chegada">
+  <label for="ciods">Protocolo CIODS</label>
+  <input type="text" id="ciods">
 
-<label>Hora do fim</label>
-<input type="time" id="fim">
+  <label for="autoridadeSolicitante">Autoridade solicitante</label>
+  <input type="text" id="autoridadeSolicitante">
 
-<label>Finalizada no mesmo dia?</label>
-<select id="mesmoDia">
-  <option>Sim</option>
-  <option>Não</option>
-</select>
+  <label for="horaChamada">Hora da chamada</label>
+  <input type="time" id="horaChamada">
 
-<label>Tipo de via</label>
-<select id="tipoVia">
-  <option>Urbana</option>
-  <option>Rural</option>
-</select>
+  <label for="chegada">Hora da chegada</label>
+  <input type="time" id="chegada">
 
-<label>Classificação da via</label>
-<input type="text" id="classificacao">
 
-<label>Endereço / KM</label>
-<input type="text" id="endereco">
+  <label for="fim">Hora do fim</label>
+  <input type="time" id="fim">
 
-<label>GPS</label>
-<input type="text" id="gps" placeholder="Coordenadas GPS">
+  <label for="mesmoDia">Finalizada no mesmo dia?</label>
+  <select id="mesmoDia">
+    <option value="">Selecione</option>
+    <option>Sim</option>
+    <option>Não</option>
+  </select>
 
-<button type="button" class="btn-gps" onclick="capturarGPS()">  Capturar GPS</button>
+  <label for="policia">Polícia responsável pelo isolamento/atendimento</label>
+  <select id="policia">
+    <option value="">Selecione</option>
+    <option>Polícia Militar</option>
+    <option>Polícia Civil</option>
+    <option>Polícia Rodoviária Federal</option>
+    <option>Guarda Municipal</option>
+    <option>Outro</option>
+    <option>Não informado</option>
+  </select>
 
-<label>Polícia do isolamento</label>
-<input type="text" id="policia">
+  <label for="cargo">Cargo/patente do responsável</label>
+  <input type="text" id="cargo">
 
-<label>Cargo do policial</label>
-<input type="text" id="cargo">
+  <label for="nomePolicial">Nome do responsável</label>
+  <input type="text" id="nomePolicial">
 
-<label>Nome do policial</label>
-<input type="text" id="nomePolicial">
+  <label for="matricula">Matrícula</label>
+  <input type="text" id="matricula">
 
-<label>Matrícula</label>
-<input type="text" id="matricula">
+  <h3 class="titulo-local">Local e Características da Via</h3>
+
+  <label for="cidade">Cidade</label>
+  <input type="text" id="cidade">
+
+  <label for="circ">Circunscrição</label>
+  <select id="circ">
+    <option value="">Selecione</option>
+    <option value="Agrestina - 96 CP">96 CP - Agrestina</option>
+    <option value="Altinho - 95 CP">95 CP - Altinho</option>
+    <option value="Barra de Guabiraba - 102 CP">102 CP - Barra de Guabiraba</option>
+    <option value="Belo Jardim - 104 CP">104 CP - Belo Jardim</option>
+    <option value="Bezerros - 91 CP">91 CP - Bezerros</option>
+    <option value="Bonito - 92 CP">92 CP - Bonito</option>
+    <option value="Brejo da Madre de Deus - 107 CP">107 CP - Brejo da Madre de Deus</option>
+    <option value="Cachoeirinha - 109 CP">109 CP - Cachoeirinha</option>
+    <option value="Camocim de São Félix - 100 CP">100 CP - Camocim de São Félix</option>
+    <option value="Caruaru - 88 CP">88 CP - Caruaru</option>
+    <option value="Caruaru - 89 CP">89 CP - Caruaru</option>
+    <option value="Caruaru - 90 CP">90 CP - Caruaru</option>
+    <option value="Cupira - 94 CP">94 CP - Cupira</option>
+    <option value="Jataúba - 111 CP">111 CP - Jataúba</option>
+    <option value="Lagoa dos Gatos - 99 CP">99 CP - Lagoa dos Gatos</option>
+    <option value="Riacho das Almas - 98 CP">98 CP - Riacho das Almas</option>
+    <option value="Sanharó - 110 CP">110 CP - Sanharó</option>
+    <option value="Santa Cruz do Capibaribe - 128 CP">128 CP - Santa Cruz do Capibaribe</option>
+    <option value="São Bento do Una - 106 CP">106 CP - São Bento do Una</option>
+    <option value="São Caetano - 108 CP">108 CP - São Caetano</option>
+    <option value="São Joaquim do Monte - 97 CP">97 CP - São Joaquim do Monte</option>
+    <option value="Tacaimbó - 112 CP">112 CP - Tacaimbó</option>
+    <option value="Taquaritinga do Norte - 130 CP">130 CP - Taquaritinga do Norte</option>
+    <option value="Toritama - 129 CP">129 CP - Toritama</option>
+    <option value="Vertentes - 131 CP">131 CP - Vertentes</option>
+  </select>
+
+  <label for="tipoVia">Tipo de via</label>
+  <select id="tipoVia">
+    <option value="">Selecione</option>
+    <option>Urbana</option>
+    <option>Rural</option>
+  </select>
+
+  <label for="classificacao">Classificação da via</label>
+  <select id="classificacao">
+    <option value="">Selecione</option>
+    <option>Via de trânsito rápido</option>
+    <option>Via arterial</option>
+    <option>Via coletora</option>
+    <option>Via local</option>
+    <option>Rodovia</option>
+    <option>Estrada</option>
+    <option>Não determinada</option>
+  </select>
+
+  <label for="endereco">Endereço / KM</label>
+  <input type="text" id="endereco">
+
+  <label for="gps">GPS</label>
+  <input type="text" id="gps" placeholder="Coordenadas GPS">
+  <button type="button" class="btn-gps" onclick="capturarGPS()">Capturar GPS</button>
+
+  <label for="topografia">Topografia</label>
+  <select id="topografia">
+    <option value="">Selecione</option>
+    <option>Nível</option>
+    <option>Aclive</option>
+    <option>Declive</option>
+  </select>
+
+  <label for="pavimento">Tipo de pavimento</label>
+  <select id="pavimento">
+    <option value="">Selecione</option>
+    <option>Asfalto</option>
+    <option>Antipó</option>
+    <option>Paralelepípedo</option>
+    <option>Concreto</option>
+    <option>Terra</option>
+    <option>Outro</option>
+  </select>
+
+  <label for="estado">Estado de conservação do pavimento</label>
+  <select id="estado">
+    <option value="">Selecione</option>
+    <option>Bom</option>
+    <option>Regular</option>
+    <option>Ruim</option>
+    <option>Não se aplica</option>
+  </select>
+
+  <label for="trecho">Trecho</label>
+  <select id="trecho">
+    <option value="">Selecione</option>
+    <option>Reta</option>
+    <option>Curva</option>
+  </select>
+
+  <label for="faixas">Número de faixas</label>
+  <input type="number" id="faixas" min="1">
+
+  <label for="sentidoVia">Sentido da via</label>
+  <input type="text" id="sentidoVia" placeholder="duas faixas de sentidos opostos">
+
+  <label for="condicaoClimatica">Condição climática</label>
+  <select id="condicaoClimatica">
+    <option value="">Selecione</option>
+    <option>Céu claro</option>
+    <option>Nublado</option>
+    <option>Chuva</option>
+    <option>Neblina</option>
+    <option>Outro</option>
+  </select>
+
+  <label for="turno">Turno</label>
+  <select id="turno">
+    <option value="">Selecione</option>
+    <option>Matutino</option>
+    <option>Vespertino</option>
+    <option>Noturno</option>
+    <option>Madrugada</option>
+  </select>
+
+  <label for="iluminacao">Iluminação</label>
+  <select id="iluminacao">
+    <option value="">Selecione</option>
+    <option>Natural</option>
+    <option>Artificial pública</option>
+    <option>Artificial privada</option>
+    <option>Natural e artificial</option>
+    <option>Ausente</option>
+  </select>
+
+  <label for="visibilidade">Visibilidade</label>
+  <select id="visibilidade">
+    <option value="">Selecione</option>
+    <option>Boa</option>
+    <option>Reduzida</option>
+    <option>Prejudicada</option>
+  </select>
+
+  <label for="pista">Condição da pista</label>
+  <select id="pista">
+    <option value="">Selecione</option>
+    <option>Seca</option>
+    <option>Úmida</option>
+    <option>Molhada</option>
+    <option>Alagada</option>
+  </select>
+
+  <label for="trafego">Tráfego</label>
+  <select id="trafego">
+    <option value="">Selecione</option>
+    <option>Ausente</option>
+    <option>Leve</option>
+    <option>Moderado</option>
+    <option>Intenso</option>
+  </select>
+
+  <label>Ladeamento</label>
+  <div class="bloco-dinamico" id="ladeamentoGrupo">
+    <label><input type="checkbox" name="ladeamento" id="ladeamentoAcostamento" value="Acostamento"> Acostamento</label>
+    <label><input type="checkbox" name="ladeamento" id="ladeamentoMeioFio" value="Meio-fio"> Meio-fio</label>
+    <label><input type="checkbox" name="ladeamento" id="ladeamentoCanteiro" value="Canteiro central"> Canteiro central</label>
+    <label><input type="checkbox" name="ladeamento" id="ladeamentoVala" value="Vala"> Vala</label>
+    <label><input type="checkbox" name="ladeamento" id="ladeamentoCalcada" value="Calçada"> Calçada</label>
+    <label><input type="checkbox" name="ladeamento" id="ladeamentoVegetacao" value="Vegetação"> Vegetação</label>
+    <label><input type="checkbox" name="ladeamento" id="ladeamentoEdificacoes" value="Edificações"> Edificações</label>
+    <label><input type="checkbox" name="ladeamento" id="ladeamentoOutro" value="Outro"> Outro</label>
+  </div>
+
+  <label for="descricaoLadeamento">Descrição complementar do ladeamento</label>
+  <textarea id="descricaoLadeamento"></textarea>
+
+  <label for="cameras">Há câmeras?</label>
+  <select id="cameras">
+    <option value="">Selecione</option>
+    <option>Sim</option>
+    <option>Não</option>
+    <option>Não verificado</option>
+  </select>
+
+  <h3 class="titulo-sinalizacao">Sinalização</h3>
+
+  <label for="limiteSinalizado">Limite de velocidade sinalizado?</label>
+  <select id="limiteSinalizado">
+    <option value="">Selecione</option>
+    <option>Sim</option>
+    <option>Não</option>
+    <option>Não verificado</option>
+  </select>
+
+  <label for="limiteVelocidade">Limite de velocidade (km/h)</label>
+  <input type="number" id="limiteVelocidade" min="0">
+
+  <label for="sinalizacaoHorizontal">Sinalização horizontal</label>
+  <input type="text" id="sinalizacaoHorizontal" placeholder="Descrever a sinalização horizontal">
+
+  <label for="sinalizacaoVertical">Sinalização vertical</label>
+  <input type="text" id="sinalizacaoVertical" placeholder="Descrever a sinalização vertical">
+
+  <label for="faixaCentral">Linha/faixa central</label>
+  <select id="faixaCentral">
+    <option value="">Selecione</option>
+    <option>Simples contínua</option>
+    <option>Simples seccionada</option>
+    <option>Dupla contínua</option>
+    <option>Dupla seccionada</option>
+    <option>Dupla mista</option>
+    <option>Ausente</option>
+    <option>Não aplicável</option>
+  </select>
+
+  <label for="faixaPedestre">Faixa de pedestre</label>
+  <select id="faixaPedestre">
+    <option value="">Selecione</option>
+    <option>Presente</option>
+    <option>Ausente</option>
+    <option>Não aplicável</option>
+  </select>
+
+  <label for="semaforo">Semáforo</label>
+  <select id="semaforo">
+    <option value="">Selecione</option>
+    <option>Ausente</option>
+    <option>Presente e funcionando</option>
+    <option>Presente e não funcionando</option>
+    <option>Funcionamento não verificado</option>
+  </select>
+
+  <label for="outrasSinalizacoes">Outras sinalizações</label>
+  <textarea id="outrasSinalizacoes"></textarea>
+
+  <h3 class="titulo-sinalizacao">Tipo de Sinistro</h3>
+
+  <label for="tipoSinistro">Tipo de sinistro</label>
+  <select id="tipoSinistro" onchange="atualizarConfiguracaoSinistro()">
+    <option value="">Selecione</option>
+    <option>Atropelamento</option>
+    <option>Colisão</option>
+    <option>Choque</option>
+    <option>Queda</option>
+    <option>Abalroamento</option>
+    <option>Capotamento</option>
+    <option>Tombamento</option>
+    <option>Saída de pista</option>
+    <option>Outro</option>
+  </select>
+
+  <div id="blocoConfiguracaoColisao" style="display:none;">
+    <label for="configuracaoColisao">Tipo de colisão</label>
+    <select id="configuracaoColisao">
+      <option value="">Selecione</option>
+      <option>Frontal</option>
+      <option>Semifrontal</option>
+      <option>Posterior</option>
+      <option>Semiposterior</option>
+      <option>Perpendicular</option>
+      <option>Oblíqua por impulso</option>
+      <option>Oblíqua por oposição</option>
+      <option>Outra</option>
+    </select>
+  </div>
+
+  <h3 class="titulo-envolvido">Envolvidos no Sinistro</h3>
+
+  <label for="qtdEnvolvidos">Quantidade de envolvidos</label>
+  <input type="number" id="qtdEnvolvidos" min="0" placeholder="Digite o número de envolvidos">
+
+  <button type="button" class="btn-envolvidos" onclick="gerarEnvolvidos()">+ Gerar envolvidos</button>
+  <div id="areaEnvolvidos"></div>
+
+  <h3 class="titulo-veiculo">Veículos Envolvidos</h3>
+
+  <label for="veicEnvolvidos">Quantidade de veículos</label>
+  <input type="number" id="veicEnvolvidos" min="0" placeholder="Digite o número de veículos">
+
+  <button type="button" class="btn-veiculos" onclick="gerarVeiculosEnvolvidos()">+ Gerar veículos envolvidos</button>
+  <div id="veiculosEnvolvidos"></div>
+
+  <h3 class="titulo-vestigios">Vestígios</h3>
+
+  <label for="marcaPneumatica">Marca de arrasto de pneumático</label>
+  <select id="marcaPneumatica">
+    <option value="">Selecione</option>
+    <option>Frenagem</option>
+    <option>Aceleração</option>
+    <option>Passagem ou impressão</option>
+    <option>Marcas de guinada</option>
+    <option>Marcas de rototranslação</option>
+    <option>Não verificado</option>
+  </select>
+
+  <label for="comprimentoMarca">Comprimento da marca (m)</label>
+  <input type="number" id="comprimentoMarca" step="0.01" min="0">
+
+  <label for="sulcos">Sulcos</label>
+  <select id="sulcos">
+    <option value="">Selecione</option>
+    <option>Sim</option>
+    <option>Não</option>
+    <option>Não verificado</option>
+  </select>
+
+  <label for="comprimentoSulcos">Comprimento dos sulcos (m)</label>
+  <input type="number" id="comprimentoSulcos" step="0.01" min="0">
+
+  <label for="fragmentos">Fragmentos</label>
+  <select id="fragmentos">
+    <option value="">Selecione</option>
+    <option>Sim</option>
+    <option>Não</option>
+    <option>Não verificado</option>
+  </select>
+
+  <label for="descricaoFragmentos">Localização/descrição dos fragmentos</label>
+  <textarea id="descricaoFragmentos"></textarea>
+
+  <label for="descricaoManchasBiologicas">Localização/descrição das manchas biológicas</label>
+  <textarea id="descricaoManchasBiologicas"></textarea>
+
+  <label for="fluidosVeiculares">Localização/descrição de fluidos veiculares</label>
+  <textarea id="fluidosVeiculares"></textarea>
+
+  <label for="depositoSujidades">Localização/descrição de depósito de sujidades</label>
+  <textarea id="depositoSujidades"></textarea>
+
+  <label for="via">Outros vestígios na via</label>
+  <textarea id="via"></textarea>
+
+  <label for="cadaver">Vestígios nos cadáveres</label>
+  <textarea id="cadaver"></textarea>
+
+  <h3 class="titulo-informacoes">Informações/Testemunhas</h3>
+
+  <label for="informanteNomeRG">Nome / RG</label>
+  <input type="text" id="informanteNomeRG">
+
+  <label for="relatoInformante">Local onde estava e o que observou do acidente</label>
+  <textarea id="relatoInformante"></textarea>
+
   
-<label>Cidade</label>
-<input type="text" id="cidade">
-
-<label>Circunscrição</label>
-<select id="circ">
-<option value="">Selecione</option>
-<option value="Agrestina - 96 CP">96 CP - Agrestina</option>
-<option value="Altinho - 95 CP">95 CP - Altinho</option>
-<option value="Barra de Guabiraba - 102 CP">102 CP - Barra de Guabiraba</option>
-<option value="Belo Jardim - 104 CP">104 CP - Belo Jardim</option>
-<option value="Bezerros - 91 CP">91 CP - Bezerros</option>
-<option value="Bonito - 92 CP">92 CP - Bonito</option>
-<option value="Brejo da Madre de Deus - 107 CP">107 CP - Brejo da Madre de Deus</option>
-<option value="Cachoeirinha - 109 CP">109 CP - Cachoeirinha</option>
-<option value="Camocim de São Félix - 100 CP">100 CP - Camocim de São Félix</option>
-<option value="Caruaru - 88 CP">88 CP - Caruaru</option>
-<option value="Caruaru - 89 CP">89 CP - Caruaru</option>
-<option value="Caruaru - 90 CP">90 CP - Caruaru</option>
-<option value="Cupira - 94 CP">94 CP - Cupira</option>
-<option value="Jataúba - 111 CP">111 CP - Jataúba</option>
-<option value="Lagoa dos Gatos - 99 CP">99 CP - Lagoa dos Gatos</option>
-<option value="Riacho das Almas - 98 CP">98 CP - Riacho das Almas</option>
-<option value="Sanharó - 110 CP">110 CP - Sanharó</option>
-<option value="Santa Cruz do Capibaribe - 128 CP">128 CP - Santa Cruz do Capibaribe</option>
-<option value="São Bento do Una - 106 CP">106 CP - São Bento do Una</option>
-<option value="São Caetano - 108 CP">108 CP - São Caetano</option>
-<option value="São Joaquim do Monte - 97 CP">97 CP - São Joaquim do Monte</option>
-<option value="Tacaimbó - 112 CP">112 CP - Tacaimbó</option>
-<option value="Taquaritinga do Norte - 130 CP">130 CP - Taquaritinga do Norte</option>
-<option value="Toritama - 129 CP">129 CP - Toritama</option>
-<option value="Vertentes - 131 CP">131 CP - Vertentes</option>
-</select>
-
-<label>Tipo de pavimento</label>
-<input type="text" id="pavimento">
-
-<label>Estado da estrada</label>
-<input type="text" id="estado">
-
-<label>Topografia</label>
-<input type="text" id="topografia">
-
-<label>Trecho</label>
-<select id="trecho">
-  <option>Reta</option>
-  <option>Curva</option>
-</select>
-
-<label>Número de faixas</label>
-<input type="number" id="faixas">
-
-<label>Sentido das vias</label>
-<input type="text" id="sentidoVia">
-
-<label>Turno</label>
-<select id="turno">
-  <option>Matutino</option>
-  <option>Vespertino</option>
-  <option>Noite</option>
-</select>
-
-<label>Iluminação</label>
-<select id="iluminacao">
-  <option>Pública</option>
-  <option>Privada</option>
-</select>
-
-<label>Visibilidade</label>
-<input type="text" id="visibilidade">
-
-<label>Pista</label>
-<select id="pista">
-  <option>Seca</option>
-  <option>Molhada</option>
-</select>
-
-<label>Tráfego</label>
-<select id="trafego">
-  <option>Leve</option>
-  <option>Moderado</option>
-  <option>Intenso</option>
-</select>
-
-<label>Ladeamento</label>
-<input type="text" id="ladeamento">
-
-<label>Há câmeras?</label>
-<select id="cameras">
-  <option>Sim</option>
-  <option>Não</option>
-</select>
-
-
-<h4 class="titulo-envolvido">Envolvidos no Sinistro</h4>
-
-    <label>Quantidade de envolvidos</label>
-    <input type="number" id="qtdEnvolvidos" min="1" placeholder="Digite o número de envolvidos entre condutores e passageiros">
-
-    <button type="button" class="btn-envolvidos" onclick="gerarEnvolvidos()">+ Gerar envolvidos</button>
-
-    <div id="areaEnvolvidos"></div>
-
-<h3 class="titulo-veiculo">Veículos Envolvidos</h3>
-
-    <label>Quantidade de veículos</label>
-    <input type="number" id="veicEnvolvidos" min="1" placeholder="Digite o número de veículos a serem criados">
-
-    <button type="button" class="btn-veiculos" onclick="gerarVeiculosEnvolvidos()">+ Gerar veículos envolvidos</button>
-
-    <div id="veiculosEnvolvidos"></div>
-
-<h3 class="titulo-vestigios">Exames Periciais</h3>
-
-<label>Vestígios na via</label>
-<textarea id="via"></textarea>
-
-<label>Vestígios nos cadáveres</label>
-<textarea id="cadaver"></textarea>
-  
-<button type="button"
-        class="btn-limpar"
-        onclick="limparDados()">
-  Apagar Dados
-</button>
-<button type="button" class="btn-pdf" onclick="gerarPDF()">Gerar PDF</button>
+  <button type="button" class="btn-limpar" onclick="limparDados()">Apagar Dados</button>
+  <button type="button" class="btn-pdf" onclick="gerarPDF()">Gerar PDF</button>
 
 </form>
 
-
 <script>
-
-const campos = document.querySelectorAll("input, select, textarea");
-
-campos.forEach(campo => {
-
-  const valorSalvo = localStorage.getItem(campo.id);
-
-  if (valorSalvo !== null) {
-    campo.value = valorSalvo;
-  }
-
-  campo.addEventListener("input", () => {
-    localStorage.setItem(campo.id, campo.value);
-  });
-
-});
-
-function ativarSalvamento(seletor) {
-  document.querySelectorAll(`${seletor} input, ${seletor} select, ${seletor} textarea`)
-    .forEach(campo => {
-      const valorSalvo = localStorage.getItem(campo.id);
-
-      if (valorSalvo !== null) {
-        campo.value = valorSalvo;
-      }
-
-      campo.addEventListener("input", () => {
-        localStorage.setItem(campo.id, campo.value);
-      });
-
-      campo.addEventListener("change", () => {
-        localStorage.setItem(campo.id, campo.value);
-      });
-    });
+function obterCampos(seletor = document) {
+  return seletor.querySelectorAll('input, select, textarea');
 }
 
-function gerarEnvolvidos() {
-  const qtd = Number(document.getElementById("qtdEnvolvidos").value);
-  const area = document.getElementById("areaEnvolvidos");
+function ativarSalvamento(seletor = document) {
+  const raiz = typeof seletor === 'string' ? document.querySelector(seletor) : seletor;
+  if (!raiz) return;
 
-  area.innerHTML = "";
+  obterCampos(raiz).forEach(campo => {
+    if (!campo.id) return;
+
+    const valorSalvo = localStorage.getItem(campo.id);
+
+    if (campo.type === 'checkbox') {
+      campo.checked = valorSalvo === 'true';
+    } else if (valorSalvo !== null) {
+      campo.value = valorSalvo;
+    }
+
+    const salvar = () => {
+      if (campo.type === 'checkbox') {
+        localStorage.setItem(campo.id, campo.checked);
+      } else {
+        localStorage.setItem(campo.id, campo.value);
+      }
+    };
+
+    campo.addEventListener('input', salvar);
+    campo.addEventListener('change', salvar);
+  });
+}
+
+ativarSalvamento(document);
+
+function gerarEnvolvidos() {
+  const qtd = Number(document.getElementById('qtdEnvolvidos').value) || 0;
+  const area = document.getElementById('areaEnvolvidos');
+  area.innerHTML = '';
 
   for (let i = 1; i <= qtd; i++) {
-    area.innerHTML += `
-      <div>
+    area.insertAdjacentHTML('beforeend', `
+      <div class="bloco-dinamico">
         <h3 class="titulo-envolvido">Envolvido ${i}</h3>
 
-        <label>Categoria do Envolvido ${i}</label>
+        <label for="categoria${i}">Categoria do envolvido ${i}</label>
         <select id="categoria${i}">
+          <option value="">Selecione</option>
           <option>Condutor</option>
           <option>Passageiro</option>
           <option>Pedestre</option>
-        </select>
-
-        <label>Nome do Envolvido ${i}</label>
-        <input type="text" id="nome${i}">
-      </div>
-    `;
-  }
-  ativarSalvamento("#areaEnvolvidos");
-}
-function capturarGPS() {
-
-  if (!navigator.geolocation) {
-    alert("Geolocalização não suportada.");
-    return;
-  }
-
-  navigator.geolocation.getCurrentPosition(
-
-    position => {
-
-      const latitude = position.coords.latitude.toFixed(6);
-      const longitude = position.coords.longitude.toFixed(6);
-      const precisao = position.coords.accuracy.toFixed(1);
-
-      const gps =
-        `${latitude}, ${longitude} | precisão aprox.: ${precisao} m`;
-
-      document.getElementById("gps").value = gps;
-
-      localStorage.setItem("gps", gps);
-    },
-
-    error => {
-
-      alert(
-        "Não foi possível capturar o GPS automaticamente.\n\n" +
-        "Você pode preencher manualmente."
-      );
-    },
-
-    {
-      enableHighAccuracy: true,
-      timeout: 15000,
-      maximumAge: 0
-    } 
-  );
-}
-  
-function gerarVeiculosEnvolvidos() {
-  const qtd = Number(document.getElementById("veicEnvolvidos").value);
-  const area = document.getElementById("veiculosEnvolvidos");
-
-  area.innerHTML = "";
-
-  for (let i = 1; i <= qtd; i++) {
-    area.innerHTML += `
-      <div>
-        <h3 class="titulo-veiculo">Veículo ${i}</h3>
-
-        <label>Veículo ${i}</label>
-        <select id="tipo${i}" onchange="mostrarOutro(${i})">
-          <option>Caminhão</option>
-          <option>Automóvel</option>
-          <option>Motocicleta</option>
+          <option>Ciclista</option>
           <option>Outro</option>
         </select>
-        <div id="outroDiv${i}" style="display:none;">
-          <label>Tipo de veículo:</label>
-          <input type="text" id="outroTipo${i}" placeholder="automóvel, carroça, bicicleta, etc" >
-        </div>
-        
-        <label>Sentido de tráfego veículo ${i}</label>
-        <input type="text" id="sentidoVeic${i}">
-    
-        <label>Vestígio veículo ${i}</label>
-        <input type="text" id="vestigios${i}">
-        
-        <label>Placa do veículo ${i}</label>
-        <input type="text" id="placa${i}">
+
+        <label for="nome${i}">Nome do envolvido ${i}</label>
+        <input type="text" id="nome${i}">
+
+        <label for="condicaoEnvolvido${i}">Condição do envolvido ${i}</label>
+        <select id="condicaoEnvolvido${i}">
+          <option value="">Selecione</option>
+          <option>Ileso</option>
+          <option>Lesionado</option>
+          <option>Óbito</option>
+          <option>Ignorado</option>
+        </select>
+
+        <label for="posicaoVitima${i}">Posição/decúbito do envolvido ${i}</label>
+        <select id="posicaoVitima${i}">
+          <option value="">Selecione</option>
+          <option>DD - decúbito dorsal</option>
+          <option>DV - decúbito ventral</option>
+          <option>DLE - decúbito lateral esquerdo</option>
+          <option>DLD - decúbito lateral direito</option>
+          <option>Outra</option>
+          <option>Não se aplica</option>
+        </select>
+
+        <label for="vestes${i}">Vestes do envolvido ${i}</label>
+        <textarea id="vestes${i}"></textarea>
+
+        <label for="veiculoRelacionado${i}">Veículo relacionado ao envolvido ${i}</label>
+        <input type="text" id="veiculoRelacionado${i}" placeholder="Ex.: V1, V2 ou não se aplica">
       </div>
-    `;
+    `);
   }
-  ativarSalvamento("#veiculosEnvolvidos");
+
+  ativarSalvamento(area);
+}
+
+function gerarVeiculosEnvolvidos() {
+  const qtd = Number(document.getElementById('veicEnvolvidos').value) || 0;
+  const area = document.getElementById('veiculosEnvolvidos');
+  area.innerHTML = '';
 
   for (let i = 1; i <= qtd; i++) {
-   mostrarOutro(i);
+    area.insertAdjacentHTML('beforeend', `
+      <div class="bloco-dinamico">
+        <h3 class="titulo-veiculo">Veículo ${i}</h3>
+
+        <label for="tipo${i}">Tipo do veículo ${i}</label>
+        <select id="tipo${i}" onchange="mostrarOutro(${i})">
+          <option value="">Selecione</option>
+          <option>Automóvel</option>
+          <option>Motocicleta</option>
+          <option>Caminhonete</option>
+          <option>Camioneta</option>
+          <option>Caminhão</option>
+          <option>Ônibus</option>
+          <option>Micro-ônibus</option>
+          <option>Bicicleta</option>
+          <option>Reboque/Semirreboque</option>
+          <option>Outro</option>
+        </select>
+
+        <div id="outroDiv${i}" style="display:none;">
+          <label for="outroTipo${i}">Outro tipo de veículo ${i}</label>
+          <input type="text" id="outroTipo${i}">
+        </div>
+
+        <label for="marcaModelo${i}">Marca/modelo do veículo ${i}</label>
+        <input type="text" id="marcaModelo${i}">
+
+        <label for="anoFabricacao${i}">Ano de fabricação do veículo ${i}</label>
+        <input type="number" id="anoFabricacao${i}" min="1900" max="2100">
+
+        <label for="anoModelo${i}">Ano modelo do veículo ${i}</label>
+        <input type="number" id="anoModelo${i}" min="1900" max="2100">
+
+        <label for="proprietario${i}">Nome do proprietário do veículo ${i}</label>
+        <input type="text" id="proprietario${i}">
+
+        <label for="cor${i}">Cor do veículo ${i}</label>
+        <input type="text" id="cor${i}">
+
+        <label for="placa${i}">Placa/município do veículo ${i}</label>
+        <input type="text" id="placa${i}">
+
+        <label for="ocupantes${i}">Número de ocupantes do veículo ${i}</label>
+        <input type="number" id="ocupantes${i}" min="0">
+
+        <label for="condutor${i}">Condutor/CPF do veículo ${i}</label>
+        <input type="text" id="condutor${i}">
+
+        <label for="carga${i}">Carga do veículo ${i}</label>
+        <input type="text" id="carga${i}">
+
+        <label for="kmVeiculo${i}">Quilometragem do veículo ${i}</label>
+        <input type="number" id="kmVeiculo${i}" min="0">
+
+        <label for="horarioRelogio${i}">Horário do relógio do veículo ${i}</label>
+        <input type="time" id="horarioRelogio${i}">
+
+        <label for="tacografo${i}">Tacógrafo do veículo ${i}</label>
+        <select id="tacografo${i}">
+          <option value="">Selecione</option>
+          <option>Presente</option>
+          <option>Ausente</option>
+          <option>Não se aplica</option>
+          <option>Não examinado</option>
+        </select>
+
+        <label for="posicaoFinal${i}">Posição final do veículo ${i}</label>
+        <select id="posicaoFinal${i}">
+          <option value="">Selecione</option>
+          <option>Posição idônea</option>
+          <option>Posição não idônea</option>
+          <option>Indeterminada</option>
+        </select>
+
+        <label for="carbonizado${i}">Veículo ${i} carbonizado?</label>
+        <select id="carbonizado${i}">
+          <option value="">Selecione</option>
+          <option>Sim</option>
+          <option>Não</option>
+          <option>Parcialmente</option>
+        </select>
+
+        <label for="sentidoVeic${i}">Sentido de tráfego do veículo ${i}</label>
+        <input type="text" id="sentidoVeic${i}">
+
+        <label for="direcao${i}">Sistema de direção do veículo ${i}</label>
+        <select id="direcao${i}">${opcoesTeste()}</select>
+
+        <label for="freios${i}">Freios do veículo ${i}</label>
+        <select id="freios${i}">${opcoesTeste()}</select>
+
+        <label for="limpador${i}">Limpador de para-brisa do veículo ${i}</label>
+        <select id="limpador${i}">${opcoesTeste(true)}</select>
+
+        <label for="lanternas${i}">Lanternas/sinaleiras do veículo ${i}</label>
+        <select id="lanternas${i}">${opcoesTeste()}</select>
+
+        <label for="farois${i}">Faróis do veículo ${i}</label>
+        <select id="farois${i}">${opcoesTeste()}</select>
+
+        <label for="pneumaticos${i}">Pneumáticos do veículo ${i}</label>
+        <select id="pneumaticos${i}">${opcoesTeste()}</select>
+
+        <label for="sedeImpacto${i}">Sede de impacto do veículo ${i}</label>
+        <select id="sedeImpacto${i}">
+          <option value="">Selecione</option>
+          <option>Região anterior lateral esquerda</option>
+          <option>Região anterior</option>
+          <option>Região anterior lateral direita</option>
+          <option>Terço anterior do setor esquerdo</option>
+          <option>Terço médio do setor esquerdo</option>
+          <option>Terço posterior do setor esquerdo</option>
+          <option>Região posterior lateral esquerda</option>
+          <option>Região posterior</option>
+          <option>Região posterior lateral direita</option>
+          <option>Terço anterior do setor direito</option>
+          <option>Terço médio do setor direito</option>
+          <option>Terço posterior do setor direito</option>
+          <option>Múltiplas regiões</option>
+          <option>Não determinada</option>
+        </select>
+
+        <label for="sentidoAvarias${i}">Sentido das avarias do veículo ${i}</label>
+        <input type="text" id="sentidoAvarias${i}" placeholder="de frente para trás, direita para esquerda">
+
+        <label for="vestigios${i}">Vestígios/avarias do veículo ${i}</label>
+        <textarea id="vestigios${i}"></textarea>
+      </div>
+    `);
   }
+
+  ativarSalvamento(area);
+  for (let i = 1; i <= qtd; i++) mostrarOutro(i);
+}
+
+function opcoesTeste(incluirNaoSeAplica = false) {
+  return `
+    <option value="">Selecione</option>
+    <option>Regular</option>
+    <option>Irregular</option>
+    <option>Não testado</option>
+    ${incluirNaoSeAplica ? '<option>Não se aplica</option>' : ''}
+  `;
 }
 
 function mostrarOutro(i) {
   const tipo = document.getElementById(`tipo${i}`);
   const divOutro = document.getElementById(`outroDiv${i}`);
+  if (!tipo || !divOutro) return;
+  divOutro.style.display = tipo.value === 'Outro' ? 'block' : 'none';
+}
 
-  if (tipo.value === "Outro") {
-    divOutro.style.display = "block";
-  } else {
-    divOutro.style.display = "none";
+function atualizarConfiguracaoSinistro() {
+  const tipo = document.getElementById('tipoSinistro').value;
+  const bloco = document.getElementById('blocoConfiguracaoColisao');
+  bloco.style.display = tipo === 'Colisão' ? 'block' : 'none';
+  if (tipo !== 'Colisão') {
+    const campo = document.getElementById('configuracaoColisao');
+    if (campo) {
+      campo.value = '';
+      localStorage.removeItem('configuracaoColisao');
+    }
   }
+}
+
+function capturarGPS() {
+  if (!navigator.geolocation) {
+    alert('Geolocalização não suportada.');
+    return;
+  }
+
+  navigator.geolocation.getCurrentPosition(
+    position => {
+      const latitude = position.coords.latitude.toFixed(6);
+      const longitude = position.coords.longitude.toFixed(6);
+      const precisao = position.coords.accuracy.toFixed(1);
+      const gps = `${latitude}, ${longitude} | precisão aprox.: ${precisao} m`;
+      document.getElementById('gps').value = gps;
+      localStorage.setItem('gps', gps);
+    },
+    () => alert('Não foi possível capturar o GPS automaticamente.\n\nVocê pode preencher manualmente.'),
+    { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+  );
+}
+
+function obterRotulo(el) {
+  const label = document.querySelector(`label[for="${el.id}"]`);
+  return label ? label.innerText : el.id;
 }
 
 function gerarPDF() {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
+  let texto = 'PERÍCIA DE TRÂNSITO\n\n';
 
-  let texto = "";
+  const ladeamentos = Array.from(
+    document.querySelectorAll('input[name="ladeamento"]:checked')
+  ).map(el => el.value);
 
-  document.querySelectorAll("input, select, textarea").forEach(el => {
-    if (el.value) {
-      texto += el.previousElementSibling.innerText + ": " + el.value + "\n\n";
-    }
+  if (ladeamentos.length) {
+    texto += `Ladeamento: ${ladeamentos.join(", ")}
+
+`;
+  }
+
+  document.querySelectorAll('input, select, textarea').forEach(el => {
+    if (el.type === 'checkbox') return;
+    if (!el.value) return;
+
+    const containerOculto = el.closest('[style*="display:none"]');
+    if (containerOculto && containerOculto.style.display === 'none') return;
+
+    texto += `${obterRotulo(el)}: ${el.value}
+
+`;
   });
 
-  const linhas = doc.splitTextToSize(texto, 180); // quebra o texto
-
+  const linhas = doc.splitTextToSize(texto, 180);
   let y = 10;
 
   linhas.forEach(linha => {
-    if (y > 280) { // cria nova página
+    if (y > 280) {
       doc.addPage();
       y = 10;
     }
@@ -454,40 +813,25 @@ function gerarPDF() {
     y += 7;
   });
 
-  const data = document.getElementById("data").value;
+  const data = document.getElementById('data').value || 'sem_data';
   doc.save(`pericia_transito_${data}.pdf`);
 }
-window.addEventListener("load", () => {
-  if (localStorage.getItem("qtdEnvolvidos")) {
-    gerarEnvolvidos();
-  }
 
-  if (localStorage.getItem("veicEnvolvidos")) {
-    gerarVeiculosEnvolvidos();
-  }
-});
 function limparDados() {
-
-const confirmar = confirm(
-  "Tem certeza que deseja apagar todos os dados preenchidos?"
-);
-
-if (confirmar) {
+  const confirmar = confirm('Tem certeza que deseja apagar todos os dados preenchidos?');
+  if (!confirmar) return;
 
   localStorage.clear();
-
-  alert("Dados apagados com sucesso.");
-
+  alert('Dados apagados com sucesso.');
   location.reload();
-
 }
 
-}
+window.addEventListener('load', () => {
+  if (localStorage.getItem('qtdEnvolvidos')) gerarEnvolvidos();
+  if (localStorage.getItem('veicEnvolvidos')) gerarVeiculosEnvolvidos();
+  atualizarConfiguracaoSinistro();
+});
 
-
-</script>
-
-<script>
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js');
 }
