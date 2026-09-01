@@ -80,6 +80,45 @@
       border-radius: 8px;
       background: #fff;
     }
+
+    /* FOTO DO CROQUI */
+
+.foto-croqui-container {
+  margin-top: 20px;
+}
+
+.foto-croqui-preview {
+  display: none;
+  width: 100%;
+  max-height: 420px;
+  object-fit: contain;
+  margin-top: 10px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  background: white;
+}
+
+.acoes-foto-croqui {
+  display: none;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.acoes-foto-croqui button {
+  flex: 1;
+}
+
+.btn-foto-croqui {
+  background: #0d6efd;
+}
+
+.btn-refazer-foto {
+  background: #6c757d;
+}
+
+.btn-excluir-foto {
+  background: #dc3545;
+}
     .linha-dupla {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -482,6 +521,55 @@
   <label for="relatoInformante">Local onde estava e o que observou do acidente</label>
   <textarea id="relatoInformante"></textarea>
 
+  <h3 class="titulo-fotografias">Croqui do Local</h3>
+
+<div class="foto-croqui-container">
+
+  <input
+    type="file"
+    id="fotoCroquiInput"
+    accept="image/*"
+    capture="environment"
+    hidden
+    onchange="processarFotoCroqui(this)"
+  >
+
+  <button
+    type="button"
+    id="btnFotoCroqui"
+    class="btn-foto-croqui"
+    onclick="abrirCameraCroqui()">
+    📷 FOTO DO CROQUI
+  </button>
+
+  <img
+    id="fotoCroquiPreview"
+    class="foto-croqui-preview"
+  >
+
+  <div
+    id="acoesFotoCroqui"
+    class="acoes-foto-croqui"
+  >
+
+    <button
+      type="button"
+      class="btn-refazer-foto"
+      onclick="refazerFotoCroqui()">
+      🔄 REFAZER
+    </button>
+
+    <button
+      type="button"
+      class="btn-excluir-foto"
+      onclick="excluirFotoCroqui()">
+      🗑️ EXCLUIR
+    </button>
+
+  </div>
+
+</div>
+
   
   <button type="button" class="btn-limpar" onclick="limparDados()">Apagar Dados</button>
   <button type="button" class="btn-pdf" onclick="gerarPDF()">Gerar PDF</button>
@@ -490,7 +578,7 @@
 
 <script>
 function obterCampos(seletor = document) {
-  return seletor.querySelectorAll('input, select, textarea');
+  return seletor.querySelectorAll('input:not([type="file"]), select, textarea');
 }
 
 function ativarSalvamento(seletor = document) {
@@ -748,7 +836,82 @@ function atualizarConfiguracaoSinistro() {
     }
   }
 }
+let fotoCroqui = null;
 
+function abrirCameraCroqui() {
+  const input = document.getElementById('fotoCroquiInput');
+  input.value = '';
+  input.click();
+}
+
+function processarFotoCroqui(input) {
+  const arquivo = input.files[0];
+  if (!arquivo) return;
+
+  const reader = new FileReader();
+
+  reader.onload = function(event) {
+    const imagem = new Image();
+
+    imagem.onload = function() {
+      const canvas = document.createElement('canvas');
+      const tamanhoMaximo = 1600;
+
+      let largura = imagem.width;
+      let altura = imagem.height;
+
+      if (largura > altura && largura > tamanhoMaximo) {
+        altura = altura * tamanhoMaximo / largura;
+        largura = tamanhoMaximo;
+      } else if (altura > tamanhoMaximo) {
+        largura = largura * tamanhoMaximo / altura;
+        altura = tamanhoMaximo;
+      }
+
+      canvas.width = largura;
+      canvas.height = altura;
+
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(imagem, 0, 0, largura, altura);
+
+      fotoCroqui = canvas.toDataURL('image/jpeg', 0.85);
+
+      const preview = document.getElementById('fotoCroquiPreview');
+      const acoes = document.getElementById('acoesFotoCroqui');
+      const botao = document.getElementById('btnFotoCroqui');
+
+      preview.src = fotoCroqui;
+      preview.style.display = 'block';
+      acoes.style.display = 'flex';
+      botao.style.display = 'none';
+    };
+
+    imagem.src = event.target.result;
+  };
+
+  reader.readAsDataURL(arquivo);
+}
+
+function refazerFotoCroqui() {
+  const input = document.getElementById('fotoCroquiInput');
+  input.value = '';
+  input.click();
+}
+
+function excluirFotoCroqui() {
+  fotoCroqui = null;
+
+  const input = document.getElementById('fotoCroquiInput');
+  const preview = document.getElementById('fotoCroquiPreview');
+  const acoes = document.getElementById('acoesFotoCroqui');
+  const botao = document.getElementById('btnFotoCroqui');
+
+  input.value = '';
+  preview.src = '';
+  preview.style.display = 'none';
+  acoes.style.display = 'none';
+  botao.style.display = 'block';
+}
 function capturarGPS() {
   if (!navigator.geolocation) {
     alert('Geolocalização não suportada.');
@@ -789,7 +952,7 @@ function gerarPDF() {
 `;
   }
 
-  document.querySelectorAll('input, select, textarea').forEach(el => {
+  document.querySelectorAll('input:not([type="file"]), select, textarea').forEach(el => {
     if (el.type === 'checkbox') return;
     if (!el.value) return;
 
@@ -813,6 +976,39 @@ function gerarPDF() {
     y += 7;
   });
 
+  if (fotoCroqui) {
+  doc.addPage();
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(14);
+  doc.text('CROQUI DO LOCAL', 105, 15, { align: 'center' });
+
+  const propriedades = doc.getImageProperties(fotoCroqui);
+
+  const larguraMaxima = 180;
+  const alturaMaxima = 245;
+
+  let larguraFoto = larguraMaxima;
+  let alturaFoto =
+    propriedades.height * larguraFoto / propriedades.width;
+
+  if (alturaFoto > alturaMaxima) {
+    alturaFoto = alturaMaxima;
+    larguraFoto =
+      propriedades.width * alturaFoto / propriedades.height;
+  }
+
+  const x = (210 - larguraFoto) / 2;
+
+  doc.addImage(
+    fotoCroqui,
+    'JPEG',
+    x,
+    25,
+    larguraFoto,
+    alturaFoto
+  );
+}
   const data = document.getElementById('data').value || 'sem_data';
   doc.save(`pericia_transito_${data}.pdf`);
 }
@@ -820,7 +1016,7 @@ function gerarPDF() {
 function limparDados() {
   const confirmar = confirm('Tem certeza que deseja apagar todos os dados preenchidos?');
   if (!confirmar) return;
-
+  fotoCroqui = null;
   localStorage.clear();
   alert('Dados apagados com sucesso.');
   location.reload();
